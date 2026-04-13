@@ -110,67 +110,17 @@ classdef FeatureExtract
 
         end
 
-        function [score,fSpace] = FWHT(spikeVecs,numComponents,trainingSetIdx,classificationSetIdx)
+        function [score,fSpace] = FWHT(spikeVecs,coeffOrder,trainingSetIdx,classificationSetIdx)
             vectorSize = size(spikeVecs,2);
 
             %Feature Extraction on Training Data
-            score_draft = zeros(length(trainingSetIdx),vectorSize);
-            for i=1:length(trainingSetIdx)
-                spikeIdx = trainingSetIdx(i);
-                score_draft(i,:) = fwht(spikeVecs(spikeIdx,:),vectorSize,'dyadic');
-            end
-            figure;
-            plot(score_draft');
-
-            % % KS Normality Deviation Test
-            % normalityDev = zeros(1,vectorSize);
-            % for coeff = 1:vectorSize
-            %     coeffDistr = score_draft(:,coeff);
-            %     mu = mean(coeffDistr);
-            %     sigma = std(coeffDistr);
-            % 
-            %     [f,x] = ecdf(coeffDistr);
-            %     g = cdf("Normal",x,mu,sigma);
-            %     normalityDev(coeff) = max(abs(f-g));
-            % end
-            % [~,indices] = maxk(normalityDev,numComponents);
-            % 
-            % disp(indices)
-            % hold on
-            % for i=1:length(indices)
-            %     xline(indices(i));
-            % end
-            % hold off
-            % 
-            % figure;
-            % for i=1:length(indices)
-            %     subplot(5,2,i)
-            %     histogram(score_draft(:,i))
-            % end
-            % 
-            % % Store coeffs with largest deviation from normality
-            % score = zeros(length(trainingSetIdx),numComponents);
-            % for i = 1:numComponents
-            %     score(:,i) = score_draft(:,indices(i));
-            % end
-            
-            % Store continuous coeffs
-            minCoeff = 50;
-            maxCoeff = minCoeff+numComponents-1;
-            score = score_draft(:,minCoeff:maxCoeff);
+            score = fwht(spikeVecs(trainingSetIdx,:)',vectorSize,coeffOrder)';
             [score,featureMax,featureMin] = FeatureExtract.normalizeFeatures(score);
             
             %Convert Classification Data into Feature Space
-            fSpace = zeros(length(classificationSetIdx),numComponents);
-            for i=1:length(classificationSetIdx)
-                spikeIdx = classificationSetIdx(i);
-                fSpace_draft = fwht(spikeVecs(spikeIdx,:));
-                % for j=1:numComponents
-                %     fSpace(i,j) = (fSpace_draft(indices(j))-featureMin(j))/(featureMax(j)-featureMin(j));
-                % end
-                for j=1:numComponents
-                    fSpace(i,j) = (fSpace_draft(minCoeff+j-1)-featureMin(j))/(featureMax(j)-featureMin(j));
-                end
+            fSpace = fwht(spikeVecs(classificationSetIdx,:)',vectorSize,coeffOrder)';
+            for i=1:vectorSize
+                fSpace(:,i) = (fSpace(:,i)-featureMin(i))/(featureMax(i)-featureMin(i));
             end
         end
 
