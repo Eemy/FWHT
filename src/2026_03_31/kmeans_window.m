@@ -3,19 +3,19 @@ addpath("../../funcs/","../../modules")
 path = "../../../SpikeTraining_RISCV/Raw_Data/";
 
 %% Set up parameters for run
-baseName = ["C_Easy1_noise005","C_Easy1_noise01","C_Easy1_noise015","C_Easy1_noise02", ...
-            "C_Easy1_noise025","C_Easy1_noise03","C_Easy1_noise035","C_Easy1_noise04", ...
-            "C_Easy2_noise005","C_Easy2_noise01","C_Easy2_noise015","C_Easy2_noise02", ...
-            "C_Difficult1_noise005","C_Difficult1_noise01","C_Difficult1_noise015","C_Difficult1_noise02", ...
-            "C_Difficult2_noise005","C_Difficult2_noise01","C_Difficult2_noise015","C_Difficult2_noise02"
-            ];
+% baseName = ["C_Easy1_noise005","C_Easy1_noise01","C_Easy1_noise015","C_Easy1_noise02", ...
+%             "C_Easy1_noise025","C_Easy1_noise03","C_Easy1_noise035","C_Easy1_noise04", ...
+%             "C_Easy2_noise005","C_Easy2_noise01","C_Easy2_noise015","C_Easy2_noise02", ...
+%             "C_Difficult1_noise005","C_Difficult1_noise01","C_Difficult1_noise015","C_Difficult1_noise02", ...
+%             "C_Difficult2_noise005","C_Difficult2_noise01","C_Difficult2_noise015","C_Difficult2_noise02"
+%             ];
 
 % baseName = ["C_Easy1_noise005","C_Easy1_noise01","C_Easy1_noise015","C_Easy1_noise02", ...
 %              "C_Easy1_noise025","C_Easy1_noise03","C_Easy1_noise035","C_Easy1_noise04"];
 
 % baseName = ["C_Easy2_noise005","C_Easy2_noise01","C_Easy2_noise015","C_Easy2_noise02"];
 
-% baseName = ["C_Difficult1_noise005","C_Difficult1_noise01","C_Difficult1_noise015","C_Difficult1_noise02"];
+baseName = ["C_Difficult1_noise005","C_Difficult1_noise01","C_Difficult1_noise015","C_Difficult1_noise02"];
 
 % baseName = ["C_Difficult2_noise005","C_Difficult2_noise01","C_Difficult2_noise015","C_Difficult2_noise02"];
 
@@ -90,10 +90,18 @@ for fileIdx = 1:numFiles
                 classificationFeatures_temp = classificationFeatures(:,coeffSel);
                 
                 %% Perform Clustering (K-Means) -- maybe FSA in the future
+                distArg = "euclidean";
+                switch distanceMethod
+                    case "Manhattan"
+                        distArg = "cityblock";
+                    case "Euclidean"
+                        distArg = "euclidean";
+                end
+
                 %opts = statset('Display','final');
                 %[clAssign_train,centers] = kmeans(trainingFeatures_temp,numGroups,'Distance','cityblock','Replicates',5,'Options',opts);
-                [clAssign_train,centers] = kmeans(trainingFeatures_temp,numGroups,'Distance','cityblock','Replicates',5);
-                [~,clAssign_unseen] = pdist2(centers,classificationFeatures_temp,'cityblock','Smallest',1);
+                [clAssign_train,centers] = kmeans(trainingFeatures_temp,numGroups,'Distance',distArg,'Replicates',5);
+                [~,clAssign_unseen] = pdist2(centers,classificationFeatures_temp,cityblock,'Smallest',1);
                 
                 %% Obtain Confusion Matrix
                 trueLabels = dataCell{fileIdx}.spike_class(dataCell{fileIdx}.classIdx);

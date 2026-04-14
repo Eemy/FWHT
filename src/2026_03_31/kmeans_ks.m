@@ -10,8 +10,8 @@ path = "../../../SpikeTraining_RISCV/Raw_Data/";
 %             "C_Difficult2_noise005","C_Difficult2_noise01","C_Difficult2_noise015","C_Difficult2_noise02"
 %             ];
 
-baseName = ["C_Easy1_noise005","C_Easy1_noise01","C_Easy1_noise015","C_Easy1_noise02", ...
-             "C_Easy1_noise025","C_Easy1_noise03","C_Easy1_noise035","C_Easy1_noise04"];
+% baseName = ["C_Easy1_noise005","C_Easy1_noise01","C_Easy1_noise015","C_Easy1_noise02", ...
+%              "C_Easy1_noise025","C_Easy1_noise03","C_Easy1_noise035","C_Easy1_noise04"];
 
 % baseName = ["C_Easy2_noise005","C_Easy2_noise01","C_Easy2_noise015","C_Easy2_noise02"];
 
