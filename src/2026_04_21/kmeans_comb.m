@@ -19,14 +19,14 @@ path = "../../../SpikeTraining_RISCV/Raw_Data/";
 
 % baseName = ["C_Difficult2_noise005","C_Difficult2_noise01","C_Difficult2_noise015","C_Difficult2_noise02"];
 
-baseName = ["C_Difficult1_noise02"];
+baseName = ["C_Difficult1_noise01"];
 
 numIters = 1;
-minComponents = 2;
-maxComponents = 2;
-distanceMethod = "Manhattan";
+minComponents = 3;
+maxComponents = 3;
+distanceMethod = "Euclidean";
 feMethod = "FWHT";
-coeffOrder = "hadamard"; %WHT = 'sequency', HT = 'hadamard'
+%coeffOrder = "hadamard"; %WHT = 'sequency', HT = 'hadamard'
 showPlot = false;
 filesInvolved = "all";
 
@@ -47,7 +47,7 @@ classCounts = [700,700,700]; % one row for each data file
 %                 40,40,40 ; ...
 %                 50,50,50];
 numGroups = 3;
-startOffset = int32(12);
+startOffset = int32(0);
 vectorSize = int32(64);
 noise = int32(0);
 
@@ -78,9 +78,16 @@ prefix = strcat(feMethod+numComponents,"_allcomb_",filesInvolved);
 for fileIdx = 1:numFiles
     for trainVal = 1:ntrainingSize
         for runNum = 1:numIters
-            dataCell{fileIdx}.splitDataCounts(classCounts(trainVal,:));
-            [trainingFeatures,classificationFeatures] = FeatureExtract.getFeatureVecs(feMethod,dataCell{fileIdx}.spikeVecs,coeffOrder,dataCell{fileIdx}.trainingIdx,dataCell{fileIdx}.classIdx);
-            
+            %dataCell{fileIdx}.splitDataCounts(classCounts(trainVal,:));
+            %[trainingFeatures,classificationFeatures] = FeatureExtract.getFeatureVecs(feMethod,dataCell{fileIdx}.spikeVecs,coeffOrder,dataCell{fileIdx}.trainingIdx,dataCell{fileIdx}.classIdx);
+
+            % Train/test split (to match Meng script)
+            rng(1, 'twister') % For repeatable result
+            r = dataCell{fileIdx}.numSpikes;
+            splt = 0.6;
+            [trainInd, valInd, testInd] = dividerand(r, splt, 0.8 - splt, 0.2);
+            [trainingFeatures,classificationFeatures] = FeatureExtract.getFeatureVecs(feMethod,dataCell{fileIdx}.spikeVecs,numComponents,trainInd,valInd);
+
             bestCoeffs = [];
             bestCenters = [];
             bestF1 = 0;
@@ -93,13 +100,25 @@ for fileIdx = 1:numFiles
                 classificationFeatures_temp = classificationFeatures(:,coeffSel);
                 
                 %% Perform Clustering (K-Means) -- maybe FSA in the future
+                distArg1 = "sqeuclidean";
+                distArg2 = "euclidean";
+                switch distanceMethod
+                    case "Manhattan"
+                        distArg1 = "cityblock";
+                        distArg2 = "cityblock";
+                    case "Euclidean"
+                        distArg1 = "sqeuclidean";
+                        distArg2 = "euclidean";
+                end
+
                 %opts = statset('Display','final');
                 %[clAssign_train,centers] = kmeans(trainingFeatures_temp,numGroups,'Distance','cityblock','Replicates',5,'Options',opts);
-                [clAssign_train,centers] = kmeans(trainingFeatures_temp,numGroups,'Distance','cityblock','Replicates',5);
-                [~,clAssign_unseen] = pdist2(centers,classificationFeatures_temp,'cityblock','Smallest',1);
+                [clAssign_train,centers] = kmeans(trainingFeatures_temp,numGroups,'Distance',distArg1,'Replicates',5);
+                [~,clAssign_unseen] = pdist2(centers,classificationFeatures_temp,distArg2,'Smallest',1);
                 
                 %% Obtain Confusion Matrix
-                trueLabels = dataCell{fileIdx}.spike_class(dataCell{fileIdx}.classIdx);
+                %trueLabels = dataCell{fileIdx}.spike_class(dataCell{fileIdx}.classIdx);
+                trueLabels = dataCell{fileIdx}.spike_class(valInd);
                 alignMat = confusionmat(trueLabels,clAssign_unseen');
                 truePositiveP = max(alignMat, [], 1);
                 [truePositiveR, Reorder] = max(alignMat, [], 2);

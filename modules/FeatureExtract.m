@@ -110,18 +110,35 @@ classdef FeatureExtract
 
         end
 
-        function [score,fSpace] = FWHT(spikeVecs,coeffOrder,trainingSetIdx,classificationSetIdx)
+        function [score,fSpace] = FWHT(spikeVecs,numComponents,trainingSetIdx,classificationSetIdx)
             vectorSize = size(spikeVecs,2);
 
             %Feature Extraction on Training Data
-            score = fwht(spikeVecs(trainingSetIdx,:)',vectorSize,coeffOrder)';
-            [score,featureMax,featureMin] = FeatureExtract.normalizeFeatures(score);
+            score = fwht(spikeVecs(trainingSetIdx,:)',vectorSize,'sequency')';
+            %[score,featureMax,featureMin] = FeatureExtract.normalizeFeatures(score);
             
+            %% DEBUGGING PURPOSES
+            % ht_order = fwht(spikeVecs(trainingSetIdx,:)',vectorSize,'hadamard')';
+            % wht_order = fwht(spikeVecs(trainingSetIdx,:)',vectorSize,'sequency')';
+
             %Convert Classification Data into Feature Space
-            fSpace = fwht(spikeVecs(classificationSetIdx,:)',vectorSize,coeffOrder)';
-            for i=1:vectorSize
-                fSpace(:,i) = (fSpace(:,i)-featureMin(i))/(featureMax(i)-featureMin(i));
-            end
+            fSpace = fwht(spikeVecs(classificationSetIdx,:)',vectorSize,'sequency')';
+            %for i=1:vectorSize
+            %    fSpace(:,i) = (fSpace(:,i)-featureMin(i))/(featureMax(i)-featureMin(i));
+            %end
+        end
+
+        function [score,fSpace] = HT(spikeVecs,numComponents,trainingSetIdx,classificationSetIdx)
+            vectorSize = size(spikeVecs,2);
+            
+            H = hadamard(vectorSize);
+            score = spikeVecs(trainingSetIdx,:) * H;
+            %[score,featureMax,featureMin] = FeatureExtract.normalizeFeatures(score);
+
+            fSpace = spikeVecs(classificationSetIdx,:) * H;
+            %for i=1:vectorSize
+            %    fSpace(:,i) = (fSpace(:,i)-featureMin(i))/(featureMax(i)-featureMin(i));
+            %end
         end
 
         function [score,fSpace] = FSDE(spikeVecs,numComponents,trainingSetIdx,classificationSetIdx)
@@ -218,6 +235,8 @@ classdef FeatureExtract
                     [score,fSpace] = FeatureExtract.wavelet(spikeVecs,numComponents,trainingSetIdx,classificationSetIdx);
                 case "FWHT"
                     [score,fSpace] = FeatureExtract.FWHT(spikeVecs,numComponents,trainingSetIdx,classificationSetIdx);
+                case "HT"
+                    [score,fSpace] = FeatureExtract.HT(spikeVecs,numComponents,trainingSetIdx,classificationSetIdx);
                 case "ZCF"
                     [score,fSpace] = FeatureExtract.zcf(spikeVecs,trainingSetIdx,classificationSetIdx);
             end
