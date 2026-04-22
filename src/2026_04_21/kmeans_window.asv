@@ -3,12 +3,12 @@ addpath("../../funcs/","../../modules")
 path = "../../../SpikeTraining_RISCV/Raw_Data/";
 
 %% Set up parameters for run
-% baseName = ["C_Easy1_noise005","C_Easy1_noise01","C_Easy1_noise015","C_Easy1_noise02", ...
-%             "C_Easy1_noise025","C_Easy1_noise03","C_Easy1_noise035","C_Easy1_noise04", ...
-%             "C_Easy2_noise005","C_Easy2_noise01","C_Easy2_noise015","C_Easy2_noise02", ...
-%             "C_Difficult1_noise005","C_Difficult1_noise01","C_Difficult1_noise015","C_Difficult1_noise02", ...
-%             "C_Difficult2_noise005","C_Difficult2_noise01","C_Difficult2_noise015","C_Difficult2_noise02"
-%             ];
+baseName = ["C_Easy1_noise005","C_Easy1_noise01","C_Easy1_noise015","C_Easy1_noise02", ...
+            "C_Easy1_noise025","C_Easy1_noise03","C_Easy1_noise035","C_Easy1_noise04", ...
+            "C_Easy2_noise005","C_Easy2_noise01","C_Easy2_noise015","C_Easy2_noise02", ...
+            "C_Difficult1_noise005","C_Difficult1_noise01","C_Difficult1_noise015","C_Difficult1_noise02", ...
+            "C_Difficult2_noise005","C_Difficult2_noise01","C_Difficult2_noise015","C_Difficult2_noise02"
+            ];
 
 % baseName = ["C_Easy1_noise005","C_Easy1_noise01","C_Easy1_noise015","C_Easy1_noise02", ...
 %              "C_Easy1_noise025","C_Easy1_noise03","C_Easy1_noise035","C_Easy1_noise04"];
@@ -19,18 +19,18 @@ path = "../../../SpikeTraining_RISCV/Raw_Data/";
 
 % baseName = ["C_Difficult2_noise005","C_Difficult2_noise01","C_Difficult2_noise015","C_Difficult2_noise02"];
 
-baseName = ["C_Difficult1_noise02"];
+% baseName = ["C_Difficult2_noise005"];
 
 numIters = 1;
 minComponents = 2;
-maxComponents = 2;
+maxComponents = 10;
 %numComponents = 2;
 distanceMethod = "Euclidean";
 feMethod = "FWHT";
 %coeffOrder = "sequency"; %WHT = 'sequency', HT = 'hadamard'
-showPlot = true;
-saveMat = false;
-dir = "";
+showPlot = false;
+saveMat = true;
+dir = "baseline_shift12/";
 
 filesInvolved = "all";
 
@@ -181,15 +181,13 @@ for fileIdx = 1:numFiles
 
                 figure;
                 subplot(2,1,1)
-                plot(classificationFeatures(:,bestCoeffs(1)),classificationFeatures(:,bestCoeffs(2)),'o','MarkerFaceColor','k');
+                startIdx = 1;
                 hold on
-                % startIdx = 1;
-                % hold on
-                % for groupIdx = 1:numGroups
-                %     endIdx = startIdx+dataCell{fileIdx}.spikeCounts(groupIdx)-1-classCounts(trainVal,groupIdx);
-                %     plot(classificationFeatures(startIdx:endIdx,bestCoeffs(1)),classificationFeatures(startIdx:endIdx,bestCoeffs(2)),'o','MarkerFaceColor',classColor(groupIdx,:));
-                %     startIdx = endIdx+1;
-                % end
+                for groupIdx = 1:numGroups
+                    endIdx = startIdx+dataCell{fileIdx}.spikeCounts(groupIdx)-1-classCounts(trainVal,groupIdx);
+                    plot(classificationFeatures(startIdx:endIdx,bestCoeffs(1)),classificationFeatures(startIdx:endIdx,bestCoeffs(2)),'o','MarkerFaceColor',classColor(groupIdx,:));
+                    startIdx = endIdx+1;
+                end
 
                 for groupIdx = 1:numGroups
                     plot(bestCenters(groupIdx,1),bestCenters(groupIdx,2),'o','MarkerFaceColor',classColor(bestReorder(groupIdx),:),'MarkerEdgeColor','k','MarkerSize',10);
@@ -198,15 +196,13 @@ for fileIdx = 1:numFiles
                 hold off
                 
                 subplot(2,1,2)
-                plot(trainingFeatures(:,bestCoeffs(1)),trainingFeatures(:,bestCoeffs(2)),'o','MarkerFaceColor','k');
+                startIdx = 1;
                 hold on
-                % startIdx = 1;
-                % hold on
-                % for groupIdx = 1:numGroups
-                %     endIdx = startIdx+classCounts(trainVal,groupIdx)-1;
-                %     plot(trainingFeatures(startIdx:endIdx,bestCoeffs(1)),trainingFeatures(startIdx:endIdx,bestCoeffs(2)),'o','MarkerFaceColor',classColor(groupIdx,:));
-                %     startIdx = endIdx+1;
-                % end
+                for groupIdx = 1:numGroups
+                    endIdx = startIdx+classCounts(trainVal,groupIdx)-1;
+                    plot(trainingFeatures(startIdx:endIdx,bestCoeffs(1)),trainingFeatures(startIdx:endIdx,bestCoeffs(2)),'o','MarkerFaceColor',classColor(groupIdx,:));
+                    startIdx = endIdx+1;
+                end
 
                 for groupIdx = 1:numGroups
                     plot(bestCenters(groupIdx,1),bestCenters(groupIdx,2),'o','MarkerFaceColor',classColor(bestReorder(groupIdx),:),'MarkerEdgeColor','k','MarkerSize',10);

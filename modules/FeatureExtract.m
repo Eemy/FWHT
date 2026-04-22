@@ -123,7 +123,7 @@ classdef FeatureExtract
             %Feature Extraction on Training Data
             score = fwht(spikeVecs(trainingSetIdx,:)',vectorSize,'sequency')';
             %[score,featureMax,featureMin] = FeatureExtract.normalizeFeatures(score);
-            [score,featureMax,featureMin] = FeatureExtract.normalizeFeatures2(score);
+            %[score,featureMax,featureMin] = FeatureExtract.normalizeFeatures2(score);
 
             %% DEBUGGING PURPOSES
             % ht_order = fwht(spikeVecs(trainingSetIdx,:)',vectorSize,'hadamard')';
@@ -134,7 +134,7 @@ classdef FeatureExtract
             %for i=1:vectorSize
             %    fSpace(:,i) = (fSpace(:,i)-featureMin(i))/(featureMax(i)-featureMin(i));
             %end
-            fSpace = (fSpace-featureMin)./(featureMax-featureMin);
+            %fSpace = (fSpace-featureMin)./(featureMax-featureMin);
         end
 
         function [score,fSpace] = HT(spikeVecs,numComponents,trainingSetIdx,classificationSetIdx)
@@ -143,13 +143,13 @@ classdef FeatureExtract
             H = hadamard(vectorSize);
             score = spikeVecs(trainingSetIdx,:) * H;
             %[score,featureMax,featureMin] = FeatureExtract.normalizeFeatures(score);
-            [score,featureMax,featureMin] = FeatureExtract.normalizeFeatures2(score);
+            %[score,featureMax,featureMin] = FeatureExtract.normalizeFeatures2(score);
 
             fSpace = spikeVecs(classificationSetIdx,:) * H;
             %for i=1:vectorSize
             %    fSpace(:,i) = (fSpace(:,i)-featureMin(i))/(featureMax(i)-featureMin(i));
             %end
-            fSpace = (fSpace-featureMin)./(featureMax-featureMin);
+            %fSpace = (fSpace-featureMin)./(featureMax-featureMin);
         end
 
         function [score,fSpace] = FSDE(spikeVecs,numComponents,trainingSetIdx,classificationSetIdx)
