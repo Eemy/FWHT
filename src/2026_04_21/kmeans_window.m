@@ -22,14 +22,15 @@ baseName = ["C_Easy1_noise005","C_Easy1_noise01","C_Easy1_noise015","C_Easy1_noi
 % baseName = ["C_Difficult2_noise005"];
 
 numIters = 1;
-minComponents = 3;
+minComponents = 2;
 maxComponents = 10;
 %numComponents = 2;
 distanceMethod = "Euclidean";
 feMethod = "HT";
-coeffOrder = "sequency"; %WHT = 'sequency', HT = 'hadamard'
+%coeffOrder = "sequency"; %WHT = 'sequency', HT = 'hadamard'
 showPlot = false;
 saveMat = true;
+dir = "baseline_addNorm2/";
 
 filesInvolved = "all";
 
@@ -234,7 +235,7 @@ end %fileIdx
         disp(results);
     end
     if saveMat
-        save(strcat(prefix,"_",distanceMethod,"_kmeans.mat"),"baseName","allFScoreUnseen", ...
+        save(strcat(dir,prefix,"_",distanceMethod,"_kmeans.mat"),"baseName","allFScoreUnseen", ...
            "avgFScoreUnseen","stdFScoreUnseen");
     end
 end %numComponents

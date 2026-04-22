@@ -14,14 +14,14 @@ FE_legend = ["FE=2","FE=3","FE=4","FE=5","FE=6","FE=7","FE=8","FE=9","FE=10"];
 %AVG = zeros(maxComponents-minComponents+1,length(trainSizes),length(feMethods));
 %STD = zeros(length(threshMethods),length(trainSizes),length(feMethods));
 
+dir = "baseline_addNorm2/";
+suffix = "_slidingWindow_all_Euclidean_kmeans.mat";
 %directories = ["HT_slidingWindow/","WHT_slidingWindow/"];
 %matFiles = ["FSDE_fsa_linear.mat","FSDE_fsa_bin.mat","FSDE_fsa_bin_quant.mat"; ...
 %    "PCA_FD_fsa_linear.mat","PCA_FD_fsa_bin.mat","PCA_FD_fsa_bin_quant.mat"];
 
 %lowNoiseIndices = [1,3,5,7];
 %highNoiseIndices = [2,4,6,8];
-
-suffix = "_slidingWindow_all_Euclidean_kmeans.mat";
 
 %% Consolidate Data
 CHT = zeros(numFiles,length(FE_legend));
@@ -37,7 +37,7 @@ for i=1:length(feMethods)
 
     for j = 1:length(numComponents)
         fileName = strcat(feString+numComponents(j),suffix);
-        load(fileName);
+        load(strcat(dir,fileName));
         feMat(:,j) = avgFScoreUnseen;
     end
     
@@ -70,4 +70,4 @@ for fileIdx = 1:numFiles
 end
 sgtitle("Sliding Consecutive Coefficients");
 set(classificationResults,"Position",[0,0,1880,1250]);
-imwrite(getframe(classificationResults).cdata,strcat("ht_wht_",get(classificationResults,'Name'),".png"));
+imwrite(getframe(classificationResults).cdata,strcat(dir,"ht_wht_",get(classificationResults,'Name'),".png"));
