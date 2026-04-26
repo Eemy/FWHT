@@ -23,19 +23,20 @@ baseName = ["C_Easy1_noise005","C_Easy1_noise01","C_Easy1_noise015","C_Easy1_noi
 
 numIters = 20;
 minComponents = 2;
+
 maxComponents = 10;
 %numComponents = 2;
-distanceMethod = "Euclidean";
+distanceMethod = "Manhattan";
 feMethod = "HT";
 %coeffOrder = "sequency"; %WHT = 'sequency', HT = 'hadamard'
 showPlot = false;
 saveMat = true;
-dir = "random_train_01/";
+dir = "man_ht_random_train_001/";
 
 filesInvolved = "all";
 
 %% Load data
-classPortions = [0.1];
+classPortions = [0.01];
 
 % classCounts = [10,10,10 ; ...
 %                 20,20,20 ; ...

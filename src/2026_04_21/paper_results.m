@@ -14,8 +14,8 @@ FE_legend = ["FE=2","FE=3","FE=4","FE=5","FE=6","FE=7","FE=8","FE=9","FE=10"];
 %AVG = zeros(maxComponents-minComponents+1,length(trainSizes),length(feMethods));
 %STD = zeros(length(threshMethods),length(trainSizes),length(feMethods));
 
-dir = "baseline_shift12_Manhattan/";
-suffix = "_slidingWindow_all_Manhattan_kmeans.mat";
+dir = "matrix_neg1to0/";
+suffix = "_slidingWindow_all_Euclidean_kmeans.mat";
 %directories = ["HT_slidingWindow/","WHT_slidingWindow/"];
 %matFiles = ["FSDE_fsa_linear.mat","FSDE_fsa_bin.mat","FSDE_fsa_bin_quant.mat"; ...
 %    "PCA_FD_fsa_linear.mat","PCA_FD_fsa_bin.mat","PCA_FD_fsa_bin_quant.mat"];
@@ -28,10 +28,10 @@ CHT = zeros(numFiles,length(FE_legend));
 WHT = zeros(numFiles,length(FE_legend));
 for i=1:length(feMethods)
     if i==1
-        feString = "HT";
+        feString = "HT_zero";
         feMat = CHT;
     else
-        feString = "FWHT";
+        feString = "FWHT_zero";
         feMat = WHT;
     end
 
@@ -65,7 +65,7 @@ for fileIdx = 1:numFiles
     hb = bar(FScore_results);
     set(gca,'xticklabel',feMethods);
     ylabel("F-Score","FontSize",10);
-    ylim([50,100]);
+    ylim([20,100]);
     title(baseName(fileIdx));
 end
 sgtitle("Sliding Consecutive Coefficients");

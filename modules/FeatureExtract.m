@@ -152,6 +152,47 @@ classdef FeatureExtract
             %fSpace = (fSpace-featureMin)./(featureMax-featureMin);
         end
 
+        function [score,fSpace] = FWHT_zero(spikeVecs,numComponents,trainingSetIdx,classificationSetIdx)
+            vectorSize = size(spikeVecs,2);
+
+            %Feature Extraction on Training Data
+            wht_mat = fwht(eye(vectorSize)); %obtain wht matrix
+            wht_mat(wht_mat < 0) = 0;
+            
+            score = spikeVecs(trainingSetIdx,:)*wht_mat;
+            
+            %[score,featureMax,featureMin] = FeatureExtract.normalizeFeatures(score);
+            %[score,featureMax,featureMin] = FeatureExtract.normalizeFeatures2(score);
+
+            %% DEBUGGING PURPOSES
+            % ht_order = fwht(spikeVecs(trainingSetIdx,:)',vectorSize,'hadamard')';
+            % wht_order = fwht(spikeVecs(trainingSetIdx,:)',vectorSize,'sequency')';
+
+            %Convert Classification Data into Feature Space
+            fSpace = spikeVecs(classificationSetIdx,:)*wht_mat;
+            
+            %for i=1:vectorSize
+            %    fSpace(:,i) = (fSpace(:,i)-featureMin(i))/(featureMax(i)-featureMin(i));
+            %end
+            %fSpace = (fSpace-featureMin)./(featureMax-featureMin);
+        end
+
+        function [score,fSpace] = HT_zero(spikeVecs,numComponents,trainingSetIdx,classificationSetIdx)
+            vectorSize = size(spikeVecs,2);
+            
+            H = hadamard(vectorSize);
+            H(H<0) = 0;
+            score = spikeVecs(trainingSetIdx,:) * H;
+            %[score,featureMax,featureMin] = FeatureExtract.normalizeFeatures(score);
+            %[score,featureMax,featureMin] = FeatureExtract.normalizeFeatures2(score);
+
+            fSpace = spikeVecs(classificationSetIdx,:) * H;
+            %for i=1:vectorSize
+            %    fSpace(:,i) = (fSpace(:,i)-featureMin(i))/(featureMax(i)-featureMin(i));
+            %end
+            %fSpace = (fSpace-featureMin)./(featureMax-featureMin);
+        end
+
         function [score,fSpace] = FSDE(spikeVecs,numComponents,trainingSetIdx,classificationSetIdx)
         %Computes first and second numerical derivatives and extracts
         %select extrema from them. Returns separate, normalized feature matrices for how the
@@ -248,6 +289,10 @@ classdef FeatureExtract
                     [score,fSpace] = FeatureExtract.FWHT(spikeVecs,numComponents,trainingSetIdx,classificationSetIdx);
                 case "HT"
                     [score,fSpace] = FeatureExtract.HT(spikeVecs,numComponents,trainingSetIdx,classificationSetIdx);
+                case "FWHT_zero"
+                    [score,fSpace] = FeatureExtract.FWHT_zero(spikeVecs,numComponents,trainingSetIdx,classificationSetIdx);
+                case "HT_zero"
+                    [score,fSpace] = FeatureExtract.HT_zero(spikeVecs,numComponents,trainingSetIdx,classificationSetIdx);
                 case "ZCF"
                     [score,fSpace] = FeatureExtract.zcf(spikeVecs,trainingSetIdx,classificationSetIdx);
             end

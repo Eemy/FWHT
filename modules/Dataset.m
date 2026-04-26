@@ -120,5 +120,20 @@ classdef Dataset < handle
             end
         end
 
+        function [spikeVecs_down] = downsample(obj,factor,offset)
+            if offset >= factor
+                disp("Invalid offset value");
+                return;
+            end
+
+            vectorSize = size(obj.spikeVecs,2);
+            vectorSize_down = floor(vectorSize/factor);
+
+            spikeVecs_down = zeros(obj.numSpikes,vectorSize_down);
+            for i=1:vectorSize_down
+                vectorSize_down(:,i) = obj.spikeVecs(:,(i-1)*factor+1+offset);
+            end
+        end
+
     end %end methods
 end %end classdef

@@ -21,20 +21,23 @@ baseName = ["C_Easy1_noise005","C_Easy1_noise01","C_Easy1_noise015","C_Easy1_noi
 
 % baseName = ["C_Difficult1_noise02"];
 
-numIters = 1;
+numIters = 20;
 minComponents = 2;
+
 maxComponents = 10;
 %numComponents = 2;
 distanceMethod = "Euclidean";
-feMethod = "HT_zero";
+feMethod = "FWHT";
 %coeffOrder = "sequency"; %WHT = 'sequency', HT = 'hadamard'
 showPlot = false;
 saveMat = true;
-dir = "matrix_neg1to0/";
+dir = "euc_ht_random_train_001/";
 
 filesInvolved = "all";
 
 %% Load data
+classPortions = [0.01];
+
 % classCounts = [10,10,10 ; ...
 %                 20,20,20 ; ...
 %                 30,30,30 ; ...
@@ -45,14 +48,14 @@ filesInvolved = "all";
 %                 300,300,300; ...
 %                 400,400,400; ...
 %                 700,700,700];
-classCounts = [700,700,700]; % one row for each data file
+% classCounts = [700,700,700]; % one row for each data file
 numGroups = 3;
 startOffset = int32(0);
 vectorSize = int32(64);
 noise = int32(0);
 
 %Create Dataset objects for each file
-numSpikes = 0; trainCount = 0; classCount = 0;
+numSpikes = 0;
 numFiles = numel(baseName);
 dataCell = cell(1,numFiles);
 for fileIdx = 1:numFiles
@@ -60,32 +63,35 @@ for fileIdx = 1:numFiles
     numSpikes = numSpikes+dataCell{fileIdx}.numSpikes;
 end
 
-ntrainingSize = size(classCounts,1);
-trainingPortion = zeros(1,ntrainingSize);
+%ntrainingSize = size(classPortions,1);
+ntrainingSize = length(classPortions);
+trainingPortion = zeros(numFiles,ntrainingSize);
+classCounts = zeros(ntrainingSize,numGroups,numFiles);
 for i=1:numFiles
     for j=1:ntrainingSize
-        trainingPortion(i,j) = sum(classCounts(j,:))/dataCell{i}.numSpikes*100;
+        classCounts(j,:,i) = floor(dataCell{i}.numSpikes*classPortions(j)/numGroups);
+        %trainingPortion(i,j) = sum(classCounts(j,:))/dataCell{i}.numSpikes*100;
+        trainingPortion(i,j) = sum(classCounts(j,:,i));
     end
 end
 
-for numComponents = minComponents:maxComponents
-%% Store results
-prefix = strcat(feMethod+numComponents,"_slidingWindow_",filesInvolved);
-allFScoreUnseen = zeros(ntrainingSize,numIters,numFiles);
-
 %% Perform Feature Extraction and Clustering
+for numComponents = minComponents:maxComponents
+prefix = strcat(feMethod+numComponents,"_slidingWindow_",filesInvolved);
+allFScoreUnseen = zeros(ntrainingSize,numIters,numFiles); %store results
+
 for fileIdx = 1:numFiles
     for trainVal = 1:ntrainingSize
         for runNum = 1:numIters
-            %dataCell{fileIdx}.splitDataCounts(classCounts(trainVal,:));
-            %[trainingFeatures,classificationFeatures] = FeatureExtract.getFeatureVecs(feMethod,dataCell{fileIdx}.spikeVecs,coeffOrder,dataCell{fileIdx}.trainingIdx,dataCell{fileIdx}.classIdx);
+            dataCell{fileIdx}.splitDataCounts(classCounts(trainVal,:,fileIdx));
+            [trainingFeatures,classificationFeatures] = FeatureExtract.getFeatureVecs(feMethod,dataCell{fileIdx}.spikeVecs,numComponents,dataCell{fileIdx}.trainingIdx,dataCell{fileIdx}.classIdx);
 
-            % Train/test split (to match Meng script)
-            rng(1, 'twister') % For repeatable result
-            r = dataCell{fileIdx}.numSpikes;
-            splt = 0.6;
-            [trainInd, valInd, testInd] = dividerand(r, splt, 0.8 - splt, 0.2);
-            [trainingFeatures,classificationFeatures] = FeatureExtract.getFeatureVecs(feMethod,dataCell{fileIdx}.spikeVecs,numComponents,trainInd,valInd);
+            % % Train/test split (to match Meng script)
+            % rng(1, 'twister') % For repeatable result
+            % r = dataCell{fileIdx}.numSpikes;
+            % splt = 0.6;
+            % [trainInd, valInd, testInd] = dividerand(r, splt, 0.8 - splt, 0.2);
+            % [trainingFeatures,classificationFeatures] = FeatureExtract.getFeatureVecs(feMethod,dataCell{fileIdx}.spikeVecs,numComponents,trainInd,valInd);
 
             bestCoeffs = [];
             bestCenters = [];
@@ -120,8 +126,8 @@ for fileIdx = 1:numFiles
                 [~,clAssign_unseen] = pdist2(centers,classificationFeatures_temp,distArg2,'Smallest',1);
                 
                 %% Obtain Confusion Matrix
-                %trueLabels = dataCell{fileIdx}.spike_class(dataCell{fileIdx}.classIdx);
-                trueLabels = dataCell{fileIdx}.spike_class(valInd);
+                trueLabels = dataCell{fileIdx}.spike_class(dataCell{fileIdx}.classIdx);
+                %trueLabels = dataCell{fileIdx}.spike_class(valInd);
                 alignMat = confusionmat(trueLabels,clAssign_unseen');
                 
                 % [Reorder,~] = labelCenters(distanceMethod,dataCell{fileIdx}.spike_class,centers,trainingFeatures_temp,dataCell{fileIdx}.trainingIdx);
@@ -235,7 +241,7 @@ end %fileIdx
         
         disp(baseName(i));
         results = table(trainingPortion(i,:)', round(avgFScoreUnseen(i,:),2)', round(stdFScoreUnseen(i,:),2)', ...
-            'VariableNames', {'Training%','Unseen:F-Score(All)','St-Dev:F-Score(All)'});
+            'VariableNames', {'Train N','Unseen:F-Score(All)','St-Dev:F-Score(All)'});
         disp(results);
     end
     if saveMat
