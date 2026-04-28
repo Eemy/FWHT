@@ -21,22 +21,24 @@ baseName = ["C_Easy1_noise005","C_Easy1_noise01","C_Easy1_noise015","C_Easy1_noi
 
 % baseName = ["C_Difficult1_noise02"];
 
-numIters = 20;
+numIters = 1;
 minComponents = 2;
-
 maxComponents = 10;
+
+downsample_factor = 4;
+downsample_offset = 0;
 %numComponents = 2;
 distanceMethod = "Euclidean";
-feMethod = "FWHT";
+feMethod = "HT";
 %coeffOrder = "sequency"; %WHT = 'sequency', HT = 'hadamard'
 showPlot = false;
 saveMat = true;
-dir = "euc_ht_random_train_001/";
+dir = "euc_ht_random_train06_down4/";
 
 filesInvolved = "all";
 
 %% Load data
-classPortions = [0.01];
+classPortions = [0.6];
 
 % classCounts = [10,10,10 ; ...
 %                 20,20,20 ; ...
@@ -84,7 +86,10 @@ for fileIdx = 1:numFiles
     for trainVal = 1:ntrainingSize
         for runNum = 1:numIters
             dataCell{fileIdx}.splitDataCounts(classCounts(trainVal,:,fileIdx));
-            [trainingFeatures,classificationFeatures] = FeatureExtract.getFeatureVecs(feMethod,dataCell{fileIdx}.spikeVecs,numComponents,dataCell{fileIdx}.trainingIdx,dataCell{fileIdx}.classIdx);
+            spikeVecs = dataCell{fileIdx}.downsample(downsample_factor,downsample_offset);
+            [trainingFeatures,classificationFeatures] = FeatureExtract.getFeatureVecs(feMethod,spikeVecs,numComponents,dataCell{fileIdx}.trainingIdx,dataCell{fileIdx}.classIdx);
+            % figure;
+            % plot(spikeVecs');
 
             % % Train/test split (to match Meng script)
             % rng(1, 'twister') % For repeatable result
@@ -98,6 +103,7 @@ for fileIdx = 1:numFiles
             bestF1 = 0;
             bestAlignMat = [];
             bestReorder = [];
+            vectorSize = size(spikeVecs,2);
             allFScore = zeros(1,vectorSize);
             for selIdx = 1:vectorSize
                 %% Coefficient Selection: sliding window

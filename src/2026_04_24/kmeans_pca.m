@@ -19,25 +19,25 @@ baseName = ["C_Easy1_noise005","C_Easy1_noise01","C_Easy1_noise015","C_Easy1_noi
 
 % baseName = ["C_Difficult2_noise005","C_Difficult2_noise01","C_Difficult2_noise015","C_Difficult2_noise02"];
 
-% baseName = ["C_Difficult1_noise02"];
+% baseName = ["C_Difficult2_noise02"];
 
 numIters = 20;
 minComponents = 2;
-downsample_factor = 2;
+downsample_factor = 1;
 
 maxComponents = 10;
 %numComponents = 2;
-distanceMethod = "Manhattan";
-feMethod = "HT";
+distanceMethod = "Euclidean";
+feMethod = "PCA";
 %coeffOrder = "sequency"; %WHT = 'sequency', HT = 'hadamard'
 showPlot = false;
 saveMat = true;
-dir = "man_ht_random_train_001/";
+dir = "pca_euc_train06/";
 
 filesInvolved = "all";
 
 %% Load data
-classPortions = [0.01];
+classPortions = [0.6];
 
 % classCounts = [10,10,10 ; ...
 %                 20,20,20 ; ...
@@ -94,76 +94,56 @@ for fileIdx = 1:numFiles
             % [trainInd, valInd, testInd] = dividerand(r, splt, 0.8 - splt, 0.2);
             % [trainingFeatures,classificationFeatures] = FeatureExtract.getFeatureVecs(feMethod,dataCell{fileIdx}.spikeVecs,numComponents,trainInd,valInd);
 
-            bestCoeffs = [];
-            bestCenters = [];
-            bestF1 = 0;
-            bestAlignMat = [];
-            bestReorder = [];
-            allFScore = zeros(1,vectorSize);
-            for selIdx = 1:vectorSize
-                %% Coefficient Selection: sliding window
-                %Store continuous coeffs
-                minCoeff = selIdx;
-                maxCoeff = minCoeff+numComponents-1;
-                coeffSel = mod(minCoeff:maxCoeff,vectorSize); coeffSel(coeffSel==0) = vectorSize;
-                trainingFeatures_temp = trainingFeatures(:,coeffSel);
-                classificationFeatures_temp = classificationFeatures(:,coeffSel);
                 
-                %% Perform Clustering (K-Means) -- maybe FSA in the future
-                distArg1 = "sqeuclidean";
-                distArg2 = "euclidean";
-                switch distanceMethod
-                    case "Manhattan"
-                        distArg1 = "cityblock";
-                        distArg2 = "cityblock";
-                    case "Euclidean"
-                        distArg1 = "sqeuclidean";
-                        distArg = "euclidean";
-                end
+            %% Perform Clustering (K-Means) -- maybe FSA in the future
+            distArg1 = "sqeuclidean";
+            distArg2 = "euclidean";
+            switch distanceMethod
+                case "Manhattan"
+                    distArg1 = "cityblock";
+                    distArg2 = "cityblock";
+                case "Euclidean"
+                    distArg1 = "sqeuclidean";
+                    distArg = "euclidean";
+            end
 
-                %opts = statset('Display','final');
-                %[clAssign_train,centers] = kmeans(trainingFeatures_temp,numGroups,'Distance','cityblock','Replicates',5,'Options',opts);
-                [clAssign_train,centers] = kmeans(trainingFeatures_temp,numGroups,'Distance',distArg1,'Replicates',5);
-                [~,clAssign_unseen] = pdist2(centers,classificationFeatures_temp,distArg2,'Smallest',1);
-                
-                %% Obtain Confusion Matrix
-                trueLabels = dataCell{fileIdx}.spike_class(dataCell{fileIdx}.classIdx);
-                %trueLabels = dataCell{fileIdx}.spike_class(valInd);
-                alignMat = confusionmat(trueLabels,clAssign_unseen');
-                
-                % [Reorder,~] = labelCenters(distanceMethod,dataCell{fileIdx}.spike_class,centers,trainingFeatures_temp,dataCell{fileIdx}.trainingIdx);
-                % truePositiveP(1) = alignMat(1,Reorder(1));
-                % truePositiveP(2) = alignMat(2,Reorder(2));
-                % truePositiveP(3) = alignMat(3,Reorder(3));
-                % 
-                % valPrecision = [truePositiveP(1)/sum(alignMat(:,Reorder(1))); ...
-                %                 truePositiveP(2)/sum(alignMat(:,Reorder(2))); ...
-                %                 truePositiveP(3)/sum(alignMat(:,Reorder(3)))];
-                % valRecall = [truePositiveP(1)/sum(alignMat(1,:)); ...
-                %                 truePositiveP(2)/sum(alignMat(2,:)); ...
-                %                 truePositiveP(3)/sum(alignMat(3,:))];
-                
-                truePositiveP = max(alignMat, [], 1);
-                [truePositiveR, Reorder] = max(alignMat, [], 2);
-                valPrecision = truePositiveP ./ sum(alignMat, 1);
-                valPrecision = [valPrecision(1, Reorder(1, 1)), ...
-                                valPrecision(1, Reorder(2, 1)), ...
-                                valPrecision(1, Reorder(3, 1))];
-                valRecall = truePositiveR ./ sum(alignMat, 2);
-                valRecall = valRecall';
-                
-                valF1 = 2 .* valPrecision .* valRecall ./ (valPrecision + valRecall);
-                valPrecision = mean(valPrecision);
-                valRecall = mean(valRecall);
-                valF1 = mean(valF1);
-                allFScore(selIdx) = valF1;
-                if valF1 > bestF1
-                    bestF1 = valF1;
-                    bestCoeffs = coeffSel;
-                    bestCenters = centers;
-                    bestAlignMat = alignMat;
-                    bestReorder = Reorder;
-                end
+            %opts = statset('Display','final');
+            %[clAssign_train,centers] = kmeans(trainingFeatures_temp,numGroups,'Distance','cityblock','Replicates',5,'Options',opts);
+            [clAssign_train,centers] = kmeans(trainingFeatures,numGroups,'Distance',distArg1,'Replicates',5);
+            [~,clAssign_unseen] = pdist2(centers,classificationFeatures,distArg2,'Smallest',1);
+            
+            %% Obtain Confusion Matrix
+            trueLabels = dataCell{fileIdx}.spike_class(dataCell{fileIdx}.classIdx);
+            %trueLabels = dataCell{fileIdx}.spike_class(valInd);
+            alignMat = confusionmat(trueLabels,clAssign_unseen');
+            
+            % [Reorder,~] = labelCenters(distanceMethod,dataCell{fileIdx}.spike_class,centers,trainingFeatures_temp,dataCell{fileIdx}.trainingIdx);
+            % truePositiveP(1) = alignMat(1,Reorder(1));
+            % truePositiveP(2) = alignMat(2,Reorder(2));
+            % truePositiveP(3) = alignMat(3,Reorder(3));
+            % 
+            % valPrecision = [truePositiveP(1)/sum(alignMat(:,Reorder(1))); ...
+            %                 truePositiveP(2)/sum(alignMat(:,Reorder(2))); ...
+            %                 truePositiveP(3)/sum(alignMat(:,Reorder(3)))];
+            % valRecall = [truePositiveP(1)/sum(alignMat(1,:)); ...
+            %                 truePositiveP(2)/sum(alignMat(2,:)); ...
+            %                 truePositiveP(3)/sum(alignMat(3,:))];
+            
+            truePositiveP = max(alignMat, [], 1);
+            [truePositiveR, Reorder] = max(alignMat, [], 2);
+            valPrecision = truePositiveP ./ sum(alignMat, 1);
+            valPrecision = [valPrecision(1, Reorder(1, 1)), ...
+                            valPrecision(1, Reorder(2, 1)), ...
+                            valPrecision(1, Reorder(3, 1))];
+            valRecall = truePositiveR ./ sum(alignMat, 2);
+            valRecall = valRecall';
+            
+            valF1 = 2 .* valPrecision .* valRecall ./ (valPrecision + valRecall);
+            valPrecision = mean(valPrecision);
+            valRecall = mean(valRecall);
+            valF1 = mean(valF1);
+            %allFScore(selIdx) = valF1;
+
                 % [labels,overwrites] = labelCenters(distanceMethod,dataCell{fileIdx}.spike_class,centers,trainingFeatures_temp,dataCell{fileIdx}.trainingIdx);
                 % train_realAssign = zeros(1,length(clAssign_train));
                 % for i=1:length(clAssign_train)
@@ -176,7 +156,9 @@ for fileIdx = 1:numFiles
                 %     unseen_realAssign(i) = labels(clAssign_unseen(i));
                 % end
                 % [fScore_unseen,incorrect] = evalFScore_v3(dataCell{fileIdx}.spike_class,unseen_realAssign,dataCell{fileIdx}.classIdx);            
-           end %selIdx
+            
+            %% Store Results
+            allFScoreUnseen(trainVal,runNum,fileIdx) = valF1;
 
             %% Visualization
             if showPlot && numComponents == 2
@@ -223,15 +205,12 @@ for fileIdx = 1:numFiles
 
                 
             end
-
-            %% Store Results
-            allFScoreUnseen(trainVal,runNum,fileIdx) = bestF1;
                 
         end %runNum
     end %trainVal
     disp(baseName(fileIdx));
-    disp("Best Coefficients: ")
-    disp(bestCoeffs);
+    % disp("Best Coefficients: ")
+    % disp(bestCoeffs);
 end %fileIdx
 
     avgFScoreUnseen = zeros(numFiles,ntrainingSize);

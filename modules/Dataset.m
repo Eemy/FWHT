@@ -131,7 +131,7 @@ classdef Dataset < handle
 
             spikeVecs_down = zeros(obj.numSpikes,vectorSize_down);
             for i=1:vectorSize_down
-                vectorSize_down(:,i) = obj.spikeVecs(:,(i-1)*factor+1+offset);
+                spikeVecs_down(:,i) = obj.spikeVecs(:,(i-1)*factor+1+offset);
             end
         end
 

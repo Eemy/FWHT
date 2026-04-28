@@ -259,7 +259,7 @@ classdef FeatureExtract
                 end
             end
             [coeff,score,~,~,~,mu] = pca(trainingSpikeVecs,'NumComponents',numComponents);
-            [score,featureMax,featureMin] = FeatureExtract.normalizeFeatures(score);
+            %[score,featureMax,featureMin] = FeatureExtract.normalizeFeatures(score);
             
             %Convert Classification Data into Feature Space
             fSpace = zeros(length(classificationSetIdx),numComponents);
@@ -269,7 +269,7 @@ classdef FeatureExtract
                         fSpace(i,j) = fSpace(i,j)+(spikeVecs(classificationSetIdx(i),k)-mu(k))*coeff(k,j);
                     end
 
-                    fSpace(i,j) = (fSpace(i,j)-featureMin(j))/(featureMax(j)-featureMin(j));
+                    %fSpace(i,j) = (fSpace(i,j)-featureMin(j))/(featureMax(j)-featureMin(j));
                 end
             end
         end %end PCA
