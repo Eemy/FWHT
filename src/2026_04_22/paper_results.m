@@ -14,7 +14,7 @@ FE_legend = ["FE=2","FE=3","FE=4","FE=5","FE=6","FE=7","FE=8","FE=9","FE=10"];
 %AVG = zeros(maxComponents-minComponents+1,length(trainSizes),length(feMethods));
 %STD = zeros(length(threshMethods),length(trainSizes),length(feMethods));
 
-dir = "man_ht_random_train_001/";
+dir = "man_ht_random_train_06/";
 suffix = "_slidingWindow_all_Manhattan_kmeans.mat";
 %directories = ["HT_slidingWindow/","WHT_slidingWindow/"];
 %matFiles = ["FSDE_fsa_linear.mat","FSDE_fsa_bin.mat","FSDE_fsa_bin_quant.mat"; ...
